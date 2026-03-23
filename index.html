@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Smart Farming AI</title>
+
+<style>
+body{
+    font-family: Arial;
+    background:#e8f5e9;
+    display:flex;
+    justify-content:center;
+    padding:20px;
+}
+
+.container{
+    background:white;
+    padding:20px;
+    border-radius:15px;
+    width:360px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.2);
+}
+
+h2,h3{color:#2e7d32;}
+
+input{
+    width:100%;
+    padding:10px;
+    margin:5px 0;
+    border-radius:8px;
+    border:1px solid #ccc;
+}
+
+button{
+    width:100%;
+    padding:10px;
+    margin-top:8px;
+    border:none;
+    border-radius:8px;
+    background:#4CAF50;
+    color:white;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+button:hover{opacity:0.9;}
+
+.result{
+    background:#f1f1f1;
+    padding:10px;
+    margin-top:10px;
+    border-radius:8px;
+}
+
+.on{border-left:5px solid green;}
+.off{border-left:5px solid red;}
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>🌾 Smart Farming</h2>
+
+<input id="N" placeholder="Nitrogen">
+<input id="P" placeholder="Phosphorus">
+<input id="K" placeholder="Potassium">
+<input id="ph" placeholder="pH">
+<input id="temp" placeholder="Temperature">
+<input id="hum" placeholder="Humidity">
+<input id="rain" placeholder="Rainfall">
+
+<button onclick="predictCrop()">🌾 Predict Crop</button>
+<div id="cropResult" class="result"></div>
+
+<button onclick="getFertilizer()">🌱 Fertilizer</button>
+<div id="fertResult" class="result"></div>
+
+<button onclick="predictYield()">📈 Predict Yield</button>
+<div id="yieldResult" class="result"></div>
+<input id="city" placeholder="Enter City Name">
+<hr>
+
+<h3>🌧️ Smart Irrigation</h3>
+
+<input id="moisture" placeholder="Soil Moisture">
+
+<button onclick="smartIrrigation()" style="background:#2196f3;">
+Run Irrigation AI
+</button>
+
+<div id="smartResult" class="result"></div>
+
+<hr>
+
+<h3>🦠 Disease Detection</h3>
+
+<input type="file" id="imageInput">
+<button onclick="detectDisease()" style="background:#ff9800;">
+Detect Disease
+</button>
+
+<div id="diseaseResult" class="result"></div>
+
+</div>
+
+<script>
+const API = "http://127.0.0.1:8000";
+
+// Get inputs safely
+function getInputs(){
+return {
+N: parseFloat(document.getElementById("N").value),
+P: parseFloat(document.getElementById("P").value),
+K: parseFloat(document.getElementById("K").value),
+ph: parseFloat(document.getElementById("ph").value),
+temp: parseFloat(document.getElementById("temp").value),
+hum: parseFloat(document.getElementById("hum").value),
+rain: parseFloat(document.getElementById("rain").value),
+moisture: parseFloat(document.getElementById("moisture").value)
+};
+}
+
+// 🌾 Crop Prediction
+async function predictCrop(){
+try{
+let d = getInputs();
+
+let res = await fetch(`${API}/predict_crop?N=${d.N}&P=${d.P}&K=${d.K}&temperature=${d.temp}&humidity=${d.hum}&ph=${d.ph}&rainfall=${d.rain}`);
+let data = await res.json();
+
+document.getElementById("cropResult").innerHTML =
+"🌾 Best Crop: <b>"+data.crop+"</b>";
+
+}catch{
+cropResult.innerHTML="❌ Error";
+}
+}
+
+// 🌱 Fertilizer
+async function getFertilizer(){
+try{
+let d = getInputs();
+
+let res = await fetch(`${API}/fertilizer?N=${d.N}&P=${d.P}&K=${d.K}&ph=${d.ph}`);
+let data = await res.json();
+
+let f = data.fertilizer;
+
+document.getElementById("fertResult").innerHTML =
+`N: ${f.nitrogen}<br>
+P: ${f.phosphorus}<br>
+K: ${f.potassium}<br>
+pH: ${f.ph}<br>
+<b>${f.overall}</b>`;
+
+}catch{
+fertResult.innerHTML="❌ Error";
+}
+}
+
+// 📈 Yield Prediction
+async function predictYield(){
+try{
+let d = getInputs();
+
+let res = await fetch(`${API}/predict_yield?temperature=${d.temp}&rainfall=${d.rain}&ph=${d.ph}&N=${d.N}&P=${d.P}&K=${d.K}`);
+let data = await res.json();
+
+document.getElementById("yieldResult").innerHTML =
+"📈 Yield: "+data.predicted_yield.toFixed(2);
+
+}catch{
+yieldResult.innerHTML="❌ Error";
+}
+}
+
+// 🌧️ Irrigation AI
+async function smartIrrigation(){
+try{
+let moisture = parseFloat(document.getElementById("moisture").value)
+let ph = parseFloat(document.getElementById("ph").value)
+let city = document.getElementById("city").value
+
+if(!city){
+    alert("Enter city name")
+    return
+}
+
+let res = await fetch(API+"/irrigation_ai",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+    moisture: moisture,
+    ph: ph,
+    city: city
+})
+})
+
+let data = await res.json()
+
+if(data.error){
+    smartResult.innerHTML = "❌ Invalid city"
+    return
+}
+
+smartResult.innerHTML =
+"🚰 Pump: "+data.pump+"<br>"+
+data.reason+"<br><br>"+
+"🌡 "+data.weather.temperature+"°C<br>"+
+"💧 "+data.weather.humidity+"%<br>"+
+"🌧 "+data.weather.rainfall+" mm"
+
+}catch{
+smartResult.innerHTML="❌ Error"
+}
+}
+// 🦠 Disease Detection
+
+async function detectDisease(){
+    try{
+        let file = document.getElementById("imageInput").files[0];
+
+        if(!file){
+            alert("Please select an image");
+            return;
+        }
+
+        let fd = new FormData();
+        fd.append("file", file);
+
+        let res = await fetch(API + "/predict_disease", {
+            method: "POST",
+            body: fd
+        });
+
+        let data = await res.json();
+
+        if(data.error){
+            document.getElementById("diseaseResult").innerHTML = "❌ " + data.error;
+            return;
+        }
+
+        document.getElementById("diseaseResult").innerHTML = `
+        🦠 <b>Disease:</b> ${data.name}<br>
+        ⚠️ <b>Severity:</b> ${data.severity}<br>
+        🧪 <b>Pesticide:</b> ${data.pesticide}<br>
+        💊 <b>Chemical:</b> ${data.chemical}<br>
+        📏 <b>Dosage:</b> ${data.dosage}<br>
+        📅 <b>Schedule:</b> ${data.schedule}<br>
+        🌿 <b>Organic:</b> ${data.organic}<br>
+        🩺 <b>Advice:</b> ${data.cure}<br>
+        📊 <b>Confidence:</b> ${data.confidence.toFixed(2)}%
+        `;
+
+    } catch(err){
+        document.getElementById("diseaseResult").innerHTML = "❌ Error detecting disease";
+    }
+}
+</script>
+
+</body>
+</html>
