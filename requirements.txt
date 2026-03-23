@@ -1,9 +1,14 @@
 fastapi
 uvicorn
-joblib
 pandas
+numpy
+scikit-learn
+joblib
+
 torch
 torchvision
+
 pillow
+
 requests
-gdown
+python-multipart
