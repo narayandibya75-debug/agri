@@ -4,9 +4,6 @@
 #from unittest import result
 import os
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("api_server:app", host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
 
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
