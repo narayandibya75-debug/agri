@@ -1,9 +1,18 @@
 import { useState } from "react";
 import {
-  Sprout, Leaf, FlaskConical, CloudRain, Droplets, ScanLeaf,
-  Wheat, Menu, X, CheckCircle2, AlertCircle, Loader2
+  Sprout,
+  Leaf,
+  FlaskConical,
+  CloudRain,
+  Droplets,
+  ScanLine,
+  Wheat,
+  Menu,
+  X,
+  CheckCircle2,
+  AlertCircle,
+  Loader2
 } from "lucide-react";
-
 const API_URL =
   import.meta.env.VITE_API_URL || "https://dnp123-ag-final.hf.space";
 
@@ -74,7 +83,7 @@ function App() {
     ["crop", "Crop Advisor", Wheat],
     ["fertilizer", "Fertilizer", FlaskConical],
     ["yield", "Yield", Leaf],
-    ["disease", "Disease Scan", ScanLeaf],
+    ["disease", "Disease Scan", ScanLine],
     ["irrigation", "Irrigation", Droplets],
   ] as const;
 
@@ -127,7 +136,7 @@ function App() {
             </div>
             <div className="cards">
               <Feature icon={Wheat} title="Crop Advisor" text="Find a suitable crop from soil and weather conditions." onClick={() => setActive("crop")} />
-              <Feature icon={ScanLeaf} title="Disease Scan" text="Upload a leaf image and get AI-based disease information." onClick={() => setActive("disease")} />
+              <Feature icon={ScanLine} title="Disease Scan" text="Upload a leaf image and get AI-based disease information." onClick={() => setActive("disease")} />
               <Feature icon={Droplets} title="Smart Irrigation" text="Use soil moisture and city weather to decide pump status." onClick={() => setActive("irrigation")} />
               <Feature icon={FlaskConical} title="Fertilizer" text="Get a fertilizer recommendation from N, P, K and pH." onClick={() => setActive("fertilizer")} />
             </div>
@@ -179,7 +188,7 @@ function Yield({soil,setSoil,loading,result,onRun}: any) {
   return <Panel title="Yield Prediction" icon={Leaf} loading={loading} result={result} onRun={onRun} button="Predict Yield"><div className="grid-fields"><NumberField label="Temperature °C" value={soil.temperature} onChange={(v:number)=>setSoil({...soil,temperature:v})}/><NumberField label="Rainfall mm" value={soil.rainfall} onChange={(v:number)=>setSoil({...soil,rainfall:v})}/><NumberField label="pH" value={soil.ph} onChange={(v:number)=>setSoil({...soil,ph:v})}/><NumberField label="Nitrogen (N)" value={soil.N} onChange={(v:number)=>setSoil({...soil,N:v})}/><NumberField label="Phosphorus (P)" value={soil.P} onChange={(v:number)=>setSoil({...soil,P:v})}/><NumberField label="Potassium (K)" value={soil.K} onChange={(v:number)=>setSoil({...soil,K:v})}/></div></Panel>;
 }
 function Disease({file,setFile,loading,result,onRun}: any) {
-  return <Panel title="Leaf Disease Scanner" icon={ScanLeaf} loading={loading} result={result} onRun={onRun} button="Analyze Leaf"><label className="upload"><input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>setFile(e.target.files?.[0]||null)}/><ScanLeaf size={42}/><b>{file ? file.name : "Choose a leaf image"}</b><span>JPG, PNG or WEBP</span></label>{result && <div className="disease-card"><strong>{result.name}</strong><span>Confidence: {formatConfidence(result.confidence)}</span><span>{result.severity || ""}</span></div>}</Panel>;
+  return <Panel title="Leaf Disease Scanner" icon={ScanLine} loading={loading} result={result} onRun={onRun} button="Analyze Leaf"><label className="upload"><input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>setFile(e.target.files?.[0]||null)}/><ScanLine size={42}/><b>{file ? file.name : "Choose a leaf image"}</b><span>JPG, PNG or WEBP</span></label>{result && <div className="disease-card"><strong>{result.name}</strong><span>Confidence: {formatConfidence(result.confidence)}</span><span>{result.severity || ""}</span></div>}</Panel>;
 }
 function Irrigation({city,setCity,moisture,setMoisture,loading,result,onRun}: any) {
   return <Panel title="Smart Irrigation" icon={Droplets} loading={loading} result={result} onRun={onRun} button="Check Irrigation"><div className="grid-fields"><label className="field"><span>City</span><input value={city} onChange={e=>setCity(e.target.value)} placeholder="e.g. Delhi"/></label><NumberField label="Soil Moisture %" value={moisture} onChange={setMoisture}/></div>{result?.pump && <div className={result.pump==="ON" ? "pump on" : "pump"}><Droplets/><div><b>Pump: {result.pump}</b><p>{result.reason}</p></div></div>}</Panel>;
