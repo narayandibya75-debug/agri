@@ -252,7 +252,7 @@ def get_cure(disease, confidence=None):
             "cure": "Consult agricultural expert"
         }
 
-    conf_percent = float(confidence * 100) if confidence else 0.0
+    conf_percent = float(confidence ) if confidence else 0.0
 
     return {
         "name": format_name(disease),
